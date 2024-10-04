@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/reservationDB?useSSL=false&serverTimezone=UTC
+    username: reservationUser
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+
+server:
+  servlet:
+    session:
+      timeout: 1800
