@@ -82,6 +82,7 @@ class PartnerControllerTest {
                                         .email("asdf@naver.com")
                                         .name("test")
                                         .password("1234")
+                                        .phone("010")
                                         .build()
                         )))
                 .andExpect(status().isOk())

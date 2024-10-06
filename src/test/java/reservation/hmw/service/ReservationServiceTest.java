@@ -6,11 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.json.BasicJsonTester;
 import reservation.hmw.exception.CustomException;
 import reservation.hmw.exception.ErrorCode;
 import reservation.hmw.model.entity.Reservation;
 import reservation.hmw.model.entity.Store;
 import reservation.hmw.model.entity.User;
+import reservation.hmw.model.entity.dto.ConfirmReservationDto;
 import reservation.hmw.model.entity.dto.ReservationDto;
 import reservation.hmw.model.entity.enums.ReservationStatus;
 import reservation.hmw.repository.ReservationRepository;
@@ -21,8 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -102,7 +103,7 @@ class ReservationServiceTest {
                 () -> reservationService.createReservation(request));
 
         //then
-        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_STORE);
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PASSWORD);
     }
 
     @Test
@@ -131,4 +132,128 @@ class ReservationServiceTest {
         Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_USER);
     }
 
+    @Test
+    void confirmReservation_success() {
+        //given
+        ConfirmReservationDto.Request req = ConfirmReservationDto.Request.builder()
+                .phone("010-1234-5678")
+                .build();
+
+        Store mockStore = Store.builder()
+                .storeName("store")
+                .location("seoul")
+                .build();
+
+        User mockUser = User.builder()
+                .id(1L)
+                .name("kim")
+                .build();
+
+        Reservation mockRes = Reservation.builder()
+                .store(mockStore)
+                .user(mockUser)
+                .reservationTime(LocalDateTime.now())
+                .reservationStatus(ReservationStatus.APPROVED)
+                .build();
+
+        given(userRepository.findByPhone(anyString()))
+                .willReturn(Optional.of(mockUser));
+
+        given(reservationRepository.findByUserId(anyLong()))
+                .willReturn(Optional.of(mockRes));
+
+        //when
+        ConfirmReservationDto.Response actual = reservationService.confirmReservation(req);
+
+        //then
+        Assertions.assertThat(actual.getUserName()).isEqualTo("kim");
+        Assertions.assertThat(actual.getStoreName()).isEqualTo("store");
+     }
+
+    @Test
+    void confirmReservation_NOT_FOUND_USER() {
+        //given
+        ConfirmReservationDto.Request req = ConfirmReservationDto.Request.builder()
+                .phone("010-1234-5678")
+                .build();
+
+        given(userRepository.findByPhone(anyString()))
+                .willReturn(Optional.empty());
+
+        //when
+        CustomException exception = assertThrows(CustomException.class,
+                () -> reservationService.confirmReservation(req));
+
+        //then
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_USER);
+    }
+
+    @Test
+    void confirmReservation_RESERVATION_NOT_FOUND() {
+        //given
+        ConfirmReservationDto.Request req = ConfirmReservationDto.Request.builder()
+                .phone("010-1234-5678")
+                .build();
+
+        User mockUser = User.builder()
+                .id(1L)
+                .name("kim")
+                .build();
+
+        given(userRepository.findByPhone(anyString()))
+                .willReturn(Optional.of(mockUser));
+
+        given(reservationRepository.findByUserId(anyLong()))
+                .willReturn(Optional.empty());
+
+        //when
+        CustomException exception = assertThrows(CustomException.class,
+                () -> reservationService.confirmReservation(req));
+        //then
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RESERVATION_NOT_FOUND);
+    }
+
+    @Test
+    void confirmReservation_RESERVATION_NOT_APPROVED() {
+        //given
+        ConfirmReservationDto.Request req = ConfirmReservationDto.Request.builder()
+                .phone("010-1234-5678")
+                .build();
+
+        LocalDateTime now = LocalDateTime.now();
+        ConfirmReservationDto.Response res = ConfirmReservationDto.Response.builder()
+                .reservationTime(now)
+                .storeName("storeName")
+                .userName("kim")
+                .build();
+
+        Store mockStore = Store.builder()
+                .storeName("store")
+                .location("seoul")
+                .build();
+
+        User mockUser = User.builder()
+                .id(1L)
+                .name("kim")
+                .build();
+
+        Reservation mockRes = Reservation.builder()
+                .store(mockStore)
+                .user(mockUser)
+                .reservationTime(LocalDateTime.now())
+                .reservationStatus(ReservationStatus.PENDING)
+                .build();
+
+        given(userRepository.findByPhone(anyString()))
+                .willReturn(Optional.of(mockUser));
+
+        given(reservationRepository.findByUserId(anyLong()))
+                .willReturn(Optional.of(mockRes));
+
+        //when
+        CustomException exception = assertThrows(CustomException.class,
+                () -> reservationService.confirmReservation(req));
+        //then
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RESERVATION_NOT_APPROVED);
+    }
 }

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reservation.hmw.exception.CustomException;
 import reservation.hmw.exception.ErrorCode;
@@ -30,6 +31,7 @@ public class UserService {
      * @param form 사용자 등록 정보가 포함된 요청 폼
      * @return 등록된 사용자 정보
      */
+    @Transactional
     public RegisterForm.Response registerUser(RegisterForm.Request form) {
         if (userRepository.existsByEmail(form.getEmail())) {
             throw new CustomException(ErrorCode.ALREADY_EXISTS_EMAIL);

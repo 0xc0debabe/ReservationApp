@@ -16,7 +16,6 @@ import reservation.hmw.model.entity.dto.StoreRegisterForm;
 import reservation.hmw.repository.PartnerRepository;
 import reservation.hmw.repository.StoreRepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -88,7 +87,7 @@ class StoreServiceTest {
 
         //then
         Assertions.assertThat(exception.getErrorCode())
-                .isEqualTo(ErrorCode.PARTNER_ONLY_ACCESS);
+                .isEqualTo(ErrorCode.PARTNER_ACCESS_ONLY);
      }
 
      @Test
@@ -129,7 +128,7 @@ class StoreServiceTest {
                   () -> storeService.searchStoreByKeyword("test"));
 
           //then
-          Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_STORE);
+          Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PASSWORD);
        }
 
        @Test
@@ -187,7 +186,7 @@ class StoreServiceTest {
 
              //then
              Assertions.assertThat(exception.getErrorCode())
-                     .isEqualTo(ErrorCode.NOT_FOUND_STORE);
+                     .isEqualTo(ErrorCode.INVALID_PASSWORD);
           }
 
 }

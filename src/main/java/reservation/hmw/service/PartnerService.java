@@ -2,6 +2,7 @@ package reservation.hmw.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reservation.hmw.exception.CustomException;
@@ -28,6 +29,7 @@ public class PartnerService {
      * @param form 회원가입 정보가 포함된 요청 폼
      * @return 등록된 파트너 정보를 포함한 응답 폼
      */
+    @Transactional
     public RegisterForm.Response registerPartner(RegisterForm.Request form) {
         if (partnerRepository.existsByEmail(form.getEmail())) {
             throw new CustomException(ErrorCode.ALREADY_EXISTS_EMAIL);

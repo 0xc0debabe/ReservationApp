@@ -24,6 +24,7 @@ public class User {
     private String name;
     private String email;
     private String password;
+    private String phone;
 
     @OneToMany(mappedBy = "user")
     private List<Review> reviewList;

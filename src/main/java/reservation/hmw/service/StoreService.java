@@ -2,6 +2,7 @@ package reservation.hmw.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reservation.hmw.exception.CustomException;
 import reservation.hmw.exception.ErrorCode;
 import reservation.hmw.model.entity.Partner;
@@ -32,9 +33,10 @@ public class StoreService {
      * @param partnerId 등록할 매장의 파트너 ID
      * @return 등록된 매장 정보
      */
+    @Transactional
     public Store registerStore(StoreRegisterForm form, Long partnerId) {
         Partner findPartner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PARTNER_ONLY_ACCESS));
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTNER_ACCESS_ONLY));
 
         Store store = Store.builder()
                 .storeName(form.getStoreName())
@@ -55,7 +57,7 @@ public class StoreService {
      */
     public List<StoreInfoDto> searchStoreByKeyword(String keyword) {
         List<Store> stores = storeRepository.findAllByKeyword(keyword)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
 
         return stores.stream()
                 .map(StoreInfoDto::fromEntity)
@@ -70,7 +72,7 @@ public class StoreService {
      */
     public StoreInfoDto searchStoreByName(String storeName) {
         Store store = storeRepository.findByStoreName(storeName)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
 
         return StoreInfoDto.fromEntity(store);
     }
@@ -84,7 +86,7 @@ public class StoreService {
      */
     public StoreDetailDto detailStore(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
 
         return new StoreDetailDto(store.getStoreDescription());
     }

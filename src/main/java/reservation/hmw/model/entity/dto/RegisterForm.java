@@ -27,11 +27,15 @@ public class RegisterForm {
         @NotEmpty
         private String password;
 
+        @NotEmpty
+        private String phone;
+
         public Partner toPartnerEntity() {
             return Partner.builder()
                     .name(this.name)
                     .email(this.email)
                     .password(this.password)
+                    .phone((this.phone))
                     .build();
         }
 
@@ -40,8 +44,10 @@ public class RegisterForm {
                     .name(this.name)
                     .email(this.email)
                     .password(this.password)
+                    .phone(this.phone)
                     .build();
         }
+
     }
 
     @Builder

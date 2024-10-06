@@ -11,11 +11,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
+import reservation.hmw.model.entity.dto.ConfirmReservationDto;
 import reservation.hmw.model.entity.dto.ReservationDto;
 import reservation.hmw.model.entity.session.SessionConst;
 import reservation.hmw.service.ReservationService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -161,11 +164,42 @@ class ReservationControllerTest {
                 .willReturn(response);
 
         //when //then
-        MvcResult mvcResult = mockMvc.perform(post("/reservation")
+        mockMvc.perform(post("/reservation")
+                .session(mockHttpSession)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+    }
+
+
+    @Test
+    void confirmReservation_success() throws Exception {
+        //given
+        ConfirmReservationDto.Request request = ConfirmReservationDto.Request.builder()
+                .phone("010-1234-5678")
+                .build();
+
+        LocalDateTime time = LocalDateTime.now();
+        ConfirmReservationDto.Response response = ConfirmReservationDto.Response.builder()
+                .reservationTime(time)
+                .storeName("storeName")
+                .userName("kim")
+                .build();
+
+        given(reservationService.confirmReservation(any()))
+                .willReturn(response);
+
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(SessionConst.LOGIN_PARTNER, 1L);
+
+        //when //then
+        mockMvc.perform(post("/reservation/confirm")
                         .session(mockHttpSession)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andReturn();
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.storeName").value("storeName"))
+                .andExpect(jsonPath("$.userName").value("kim"));
+
     }
 
 }

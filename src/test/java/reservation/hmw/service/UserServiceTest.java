@@ -50,6 +50,7 @@ class UserServiceTest {
                 .name("test")
                 .email("test@naver.com")
                 .password("1234")
+                .phone("010")
                 .build();
 
         given(userRepository.existsByEmail(any()))

@@ -44,6 +44,7 @@ class UserControllerTest {
                 .email("test@naver.com")
                 .name("test")
                 .password("1234")
+                .phone("010")
                 .build();
 
         RegisterForm.Response response = RegisterForm.Response.builder()

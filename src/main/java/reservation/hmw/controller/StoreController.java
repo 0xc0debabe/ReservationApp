@@ -44,7 +44,7 @@ public class StoreController {
 
         Long partnerId = (Long) request.getSession(false).getAttribute(SessionConst.LOGIN_PARTNER);
         if (partnerId == null) {
-            throw new CustomException(ErrorCode.PARTNER_ONLY_ACCESS);
+            throw new CustomException(ErrorCode.PARTNER_ACCESS_ONLY);
         }
 
         return ResponseEntity.ok(storeService.registerStore(form, partnerId));

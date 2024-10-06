@@ -20,6 +20,7 @@ public class Partner {
     private String name;
     private String email;
     private String password;
+    private String phone;
 
     @OneToMany(mappedBy = "partner")
     private List<Store> storeList;

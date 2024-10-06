@@ -50,6 +50,7 @@ class PartnerServiceTest {
                 .email("test@naver.com")
                 .name("testPartner")
                 .password("1234")
+                .phone("0103")
                 .build();
 
     }
@@ -69,6 +70,7 @@ class PartnerServiceTest {
                         .name("who")
                         .email("adsf@naver.com")
                         .password("!234")
+                        .phone("010")
                         .build()
                 );
 

@@ -179,7 +179,7 @@ class StoreControllerTest {
                   .andExpect(status().isBadRequest())
                   .andExpect(result -> {
                       String content = result.getResponse().getContentAsString();
-                      System.out.println(content);
+                      Assertions.assertThat(content).contains("파트너 회원만 접근할 수 있습니다.");
                   });
        }
 
