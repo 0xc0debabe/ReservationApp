@@ -1,6 +1,7 @@
 package reservation.hmw.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Getter @Setter @Builder
 @Entity
+@AllArgsConstructor
 public class Partner {
 
     @Id
@@ -22,7 +24,7 @@ public class Partner {
     private String password;
     private String phone;
 
-    @OneToMany(mappedBy = "partner")
+    @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL)
     private List<Store> storeList;
 
     @CreatedDate

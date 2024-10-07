@@ -16,7 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new PartnerCheckInterceptor())
                 .order(1)
-                .addPathPatterns("/store/register");
+                .addPathPatterns("/store/register", "/reservation/approve");
 
         registry.addInterceptor(new LoginCheckInterceptor())
                 .order(2)

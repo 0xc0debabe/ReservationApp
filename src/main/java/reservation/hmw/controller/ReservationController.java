@@ -48,4 +48,16 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.confirmReservation(confirmForm));
     }
 
+    @PutMapping("/approve/{reservationId}")
+    public ResponseEntity<?> approveReservation(@PathVariable(name = "reservationId") Long reservationId) {
+        reservationService.approveReservation(reservationId);
+        return ResponseEntity.ok("APPROVED");
+    }
+
+    @PutMapping("/reject/{reservationId}")
+    public ResponseEntity<?> rejectReservation(@PathVariable(name = "reservationId") Long reservationId) {
+        reservationService.rejectReservation(reservationId);
+        return ResponseEntity.ok("REJECTED");
+    }
+
 }

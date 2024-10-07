@@ -21,10 +21,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReservationController.class)
 class ReservationControllerTest {
@@ -202,4 +204,33 @@ class ReservationControllerTest {
 
     }
 
+    @Test
+    void approveReservation_success() throws Exception {
+        //given
+        MockMvc mock = MockMvcBuilders.standaloneSetup(new ReservationController(reservationService)).build();
+
+        Long reservationId = 1L;
+
+        //when
+
+        //then
+        mock.perform(put("/reservation/approve/{reservationId}", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("APPROVED"));
+    }
+
+    @Test
+    void rejectReservation() throws Exception{
+        //given
+        MockMvc mock = MockMvcBuilders.standaloneSetup(new ReservationController(reservationService)).build();
+
+        Long reservationId = 1L;
+        //when
+
+        //then
+        mock.perform(put("/reservation/reject/{reservationId}", reservationId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("REJECTED"));
+     }
 }

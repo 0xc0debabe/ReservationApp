@@ -1,6 +1,7 @@
 package reservation.hmw.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reservation.hmw.exception.CustomException;
@@ -14,6 +15,7 @@ import reservation.hmw.repository.PartnerRepository;
 import reservation.hmw.repository.StoreRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +48,8 @@ public class StoreService {
                 .partner(findPartner)
                 .build();
 
+        findPartner.getStoreList().add(store);
+
         return storeRepository.save(store);
     }
 
@@ -57,7 +61,7 @@ public class StoreService {
      */
     public List<StoreInfoDto> searchStoreByKeyword(String keyword) {
         List<Store> stores = storeRepository.findAllByKeyword(keyword)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
 
         return stores.stream()
                 .map(StoreInfoDto::fromEntity)
@@ -72,7 +76,7 @@ public class StoreService {
      */
     public StoreInfoDto searchStoreByName(String storeName) {
         Store store = storeRepository.findByStoreName(storeName)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
 
         return StoreInfoDto.fromEntity(store);
     }
@@ -86,8 +90,39 @@ public class StoreService {
      */
     public StoreDetailDto detailStore(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
 
-        return new StoreDetailDto(store.getStoreDescription());
+
+        return new StoreDetailDto(store.getStoreDescription(), store.getReviewList());
     }
+
+    @Transactional
+    public Store updateStore(Long storeId, StoreRegisterForm form, Long partnerId) {
+        Store findStore = storeRepository.findById(storeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
+
+        if (!Objects.equals(findStore.getPartner().getId(), partnerId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
+        }
+
+        findStore.setStoreName(form.getStoreName());
+        findStore.setStoreDescription(form.getStoreDescription());
+        findStore.setKeyword(form.getKeyword());
+        findStore.setLocation(form.getLocation());
+
+        return storeRepository.save(findStore);
+    }
+
+    @Transactional
+    public void deleteStore(Long storeId, Long partnerId) {
+        Store findStore = storeRepository.findById(storeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
+
+        if (!Objects.equals(findStore.getPartner().getId(), partnerId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
+        }
+
+        storeRepository.delete(findStore);
+    }
+
 }

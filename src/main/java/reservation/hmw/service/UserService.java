@@ -56,7 +56,7 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXISTS_EMAIL));
 
         if (!user.getPassword().equals(form.getPassword())) {
-            throw new CustomException(ErrorCode.NOT_COLLECT_PASSWORD);
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
         return LoginForm.Response.builder()

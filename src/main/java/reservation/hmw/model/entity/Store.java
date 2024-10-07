@@ -1,19 +1,18 @@
 package reservation.hmw.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Entity
 public class Store {
@@ -31,8 +30,11 @@ public class Store {
     @JoinColumn(name = "partner_id")
     private Partner partner;
 
-    @OneToMany(mappedBy = "store")
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
     private List<Reservation> reservationList;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
+    private List<Review> reviewList;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -20,12 +20,15 @@ import reservation.hmw.repository.StoreRepository;
 import reservation.hmw.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
@@ -54,6 +57,7 @@ class ReservationServiceTest {
         Store mockStore = Store.builder()
                 .storeName("store")
                 .location("seoul")
+                .reservationList(new ArrayList<>())
                 .build();
 
         User mockUser = User.builder()
@@ -103,7 +107,7 @@ class ReservationServiceTest {
                 () -> reservationService.createReservation(request));
 
         //then
-        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PASSWORD);
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_STORE);
     }
 
     @Test
@@ -256,4 +260,67 @@ class ReservationServiceTest {
         //then
         Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.RESERVATION_NOT_APPROVED);
     }
+
+    @Test
+    void approveReservation_success() {
+        Store mockStore = Store.builder()
+                .storeName("store")
+                .location("seoul")
+                .build();
+
+        User mockUser = User.builder()
+                .id(1L)
+                .name("kim")
+                .build();
+
+        Reservation mockRes = Reservation.builder()
+                .id(1L)
+                .store(mockStore)
+                .user(mockUser)
+                .reservationTime(LocalDateTime.now())
+                .reservationStatus(ReservationStatus.PENDING)
+                .build();
+        //given
+        given(reservationRepository.findById(anyLong()))
+                .willReturn(Optional.of(mockRes));
+
+        //when
+        reservationService.approveReservation(1L);
+
+        //then
+        verify(reservationRepository).save(mockRes);
+        Assertions.assertThat(mockRes.getReservationStatus()).isEqualTo(ReservationStatus.APPROVED);
+     }
+
+    @Test
+    void rejectReservation_success() {
+        Store mockStore = Store.builder()
+                .storeName("store")
+                .location("seoul")
+                .build();
+
+        User mockUser = User.builder()
+                .id(1L)
+                .name("kim")
+                .build();
+
+        Reservation mockRes = Reservation.builder()
+                .id(1L)
+                .store(mockStore)
+                .user(mockUser)
+                .reservationTime(LocalDateTime.now())
+                .reservationStatus(ReservationStatus.PENDING)
+                .build();
+        //given
+        given(reservationRepository.findById(anyLong()))
+                .willReturn(Optional.of(mockRes));
+
+        //when
+        reservationService.rejectReservation(1L);
+
+        //then
+        verify(reservationRepository).save(mockRes);
+        Assertions.assertThat(mockRes.getReservationStatus()).isEqualTo(ReservationStatus.REJECT);
+    }
+
 }

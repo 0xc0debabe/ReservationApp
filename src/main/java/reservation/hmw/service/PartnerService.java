@@ -54,7 +54,7 @@ public class PartnerService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXISTS_EMAIL));
 
         if (!partner.getPassword().equals(form.getPassword())) {
-            throw new CustomException(ErrorCode.NOT_COLLECT_PASSWORD);
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
         return LoginForm.Response.builder()

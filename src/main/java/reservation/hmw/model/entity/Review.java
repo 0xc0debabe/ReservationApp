@@ -1,8 +1,7 @@
 package reservation.hmw.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -11,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 public class Review {
 
     @Id
@@ -18,7 +18,7 @@ public class Review {
     private Long id;
 
     private Integer rating;
-    private String comment;
+    private String content;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -32,4 +32,5 @@ public class Review {
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime modifiedAt;
+
 }

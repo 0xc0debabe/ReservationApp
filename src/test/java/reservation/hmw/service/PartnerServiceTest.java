@@ -157,7 +157,7 @@ class PartnerServiceTest {
                         .build()));
 
         //then
-        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_COLLECT_PASSWORD);
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PASSWORD);
     }
 
     @Test

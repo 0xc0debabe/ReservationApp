@@ -2,6 +2,7 @@ package reservation.hmw.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,22 +17,28 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
+import reservation.hmw.exception.CustomException;
+import reservation.hmw.exception.ErrorCode;
+import reservation.hmw.model.entity.Review;
 import reservation.hmw.model.entity.Store;
+import reservation.hmw.model.entity.User;
 import reservation.hmw.model.entity.dto.StoreDetailDto;
 import reservation.hmw.model.entity.dto.StoreInfoDto;
 import reservation.hmw.model.entity.dto.StoreRegisterForm;
+import reservation.hmw.model.entity.session.PartnerCheckInterceptor;
 import reservation.hmw.model.entity.session.SessionConst;
 import reservation.hmw.service.StoreService;
 
+import javax.swing.text.html.Option;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(StoreController.class)
 class StoreControllerTest {
@@ -43,13 +50,21 @@ class StoreControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
+    private PartnerCheckInterceptor interceptor;
+
+    @MockBean
     private StoreService storeService;
 
     @Mock
     private HttpServletRequest request;
 
     @Mock
+    private HttpServletResponse response;
+
+    @Mock
     private HttpSession session;
+
+
 
     private MockHttpSession mockHttpSession;
 
@@ -75,24 +90,34 @@ class StoreControllerTest {
                 .isEqualTo(3L);
     }
 
-    /**
-     * 성공 못시켰음
-     * 이후 session.getAttribute(SessionConst.LOGIN_PARTNER) == null)도 확인할 것
-     * @throws Exception
-     */
     @Test
-    void store_canNotAccess1() throws Exception {
-        //given
+    void store_register_preHandle_throwsException() throws Exception {
+        // given
+        MockHttpSession mockHttpSession1 = new MockHttpSession();
+        mockHttpSession1.setAttribute(SessionConst.LOGIN_USER, 1L);
 
-        //when //then
-        mockMvc.perform(post("/store/somePoint")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(
-                        result -> {
-                            String content = result.getResponse().getContentAsString();
-                            System.out.println(content);
-                        });
+        // Interceptor의 preHandle에서 예외 발생 설정
+        given(interceptor.preHandle(any(HttpServletRequest.class), any(HttpServletResponse.class), any(Object.class)))
+                .willThrow(new CustomException(ErrorCode.PARTNER_ACCESS_ONLY));
+
+        StoreRegisterForm form = StoreRegisterForm.builder()
+                .storeName("Test Store")
+                .location("Test Location")
+                .storeDescription("This is a test store")
+                .keyword("test")
+                .build();
+
+        // when // then
+        mockMvc.perform(post("/store/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .session(mockHttpSession1)
+                        .content(new ObjectMapper().writeValueAsString(form)))
+                .andExpect(status().isBadRequest()) // 예외 발생 시 400 상태 코드 확인
+                .andExpect(result -> {
+                    String content = result.getResponse().getContentAsString();
+                    Assertions.assertThat(content).isEqualTo("파트너 회원만 접근할 수 있습니다.");
+                    System.out.println(content);
+                });
     }
 
     @Test
@@ -149,39 +174,6 @@ class StoreControllerTest {
                      System.out.println(content);
                  });
       }
-
-    /**
-     * 성공 못시켰음
-     * @throws Exception
-     */
-      @Test
-      void register_validation2() throws Exception{
-          //given
-          StoreRegisterForm form = StoreRegisterForm.builder()
-                  .storeName("가게이름")
-                  .storeDescription("가게설명")
-                  .location("가게위치")
-                  .keyword("카페")
-                  .build();
-
-          MockHttpSession mockSession = new MockHttpSession();
-          mockSession.setAttribute(SessionConst.LOGIN_PARTNER, null);
-
-          MockMvc testMock = MockMvcBuilders
-                  .standaloneSetup(new StoreController(storeService))
-                  .build();
-
-          //when //then
-          testMock.perform(post("/store/register")
-                  .session(mockSession)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(form)))
-                  .andExpect(status().isBadRequest())
-                  .andExpect(result -> {
-                      String content = result.getResponse().getContentAsString();
-                      Assertions.assertThat(content).contains("파트너 회원만 접근할 수 있습니다.");
-                  });
-       }
 
     @Test
     void searchStoreByKeyword_success() throws Exception {
@@ -262,8 +254,27 @@ class StoreControllerTest {
                 .standaloneSetup(new StoreController(storeService))
                 .build();
 
+        Store store = Store.builder()
+                .location("loc")
+                .storeName("storeName")
+                .storeDescription("des")
+                .build();
+
+        User user = User.builder()
+                .name("name")
+                .build();
+
+        List<Review> reviewList = Arrays.asList(
+                Review.builder()
+                        .store(store)
+                        .user(user)
+                        .rating(5)
+                        .id(1L)
+                        .build()
+        );
+
         given(storeService.detailStore(anyLong()))
-                .willReturn(new StoreDetailDto("desc"));
+                .willReturn(new StoreDetailDto("desc", reviewList));
 
         //when //then
         testMock.perform(get("/store/detail/1")
@@ -271,5 +282,63 @@ class StoreControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.storeDescription").value("desc"));
      }
+
+    @Test
+    void updateStore_success() throws Exception {
+        // given
+        Store store = new Store();
+        store.setStoreName("Updated Store Name");
+        store.setStoreDescription("Updated Description");
+        store.setLocation("Updated Location");
+        store.setKeyword("Updated Keyword");
+
+        StoreRegisterForm form = new StoreRegisterForm();
+        form.setStoreName("Updated Store Name");
+        form.setStoreDescription("Updated Description");
+        form.setLocation("Updated Location");
+        form.setKeyword("Updated Keyword");
+
+        mockMvc = MockMvcBuilders.standaloneSetup(new StoreController(storeService)).build();
+        given(storeService.updateStore(anyLong(), any(), anyLong()))
+                .willReturn(store);
+
+        Long storeId = 1L;
+
+        // when // then
+        mockMvc.perform(put("/store/update/{storeId}", storeId)
+                        .session(mockHttpSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(form)))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    void deleteStore_success() throws Exception {
+        Store store = new Store();
+        store.setStoreName("Updated Store Name");
+        store.setStoreDescription("Updated Description");
+        store.setLocation("Updated Location");
+        store.setKeyword("Updated Keyword");
+
+        StoreRegisterForm form = new StoreRegisterForm();
+        form.setStoreName("Updated Store Name");
+        form.setStoreDescription("Updated Description");
+        form.setLocation("Updated Location");
+        form.setKeyword("Updated Keyword");
+
+        mockMvc = MockMvcBuilders.standaloneSetup(new StoreController(storeService)).build();
+        given(storeService.updateStore(anyLong(), any(), anyLong()))
+                .willReturn(store);
+
+        Long storeId = 1L;
+
+        // when // then
+        mockMvc.perform(delete("/store/delete/{storeId}", storeId)
+                        .session(mockHttpSession)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(form)))
+                .andExpect(status().isOk());
+    }
 
 }

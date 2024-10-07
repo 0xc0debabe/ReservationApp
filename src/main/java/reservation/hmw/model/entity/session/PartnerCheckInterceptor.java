@@ -12,6 +12,7 @@ public class PartnerCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession(false);
+
         if (session == null || session.getAttribute(SessionConst.LOGIN_PARTNER) == null) {
             throw new CustomException(ErrorCode.PARTNER_ACCESS_ONLY);
         }

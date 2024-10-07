@@ -50,6 +50,32 @@ public class StoreController {
         return ResponseEntity.ok(storeService.registerStore(form, partnerId));
     }
 
+    @PutMapping("update/{storeId}")
+    public ResponseEntity<?> updateStore(@PathVariable(name = "storeId") Long storeId,
+                                         @Valid @RequestBody StoreRegisterForm form,
+                                         BindingResult bindingResult,
+                                         @SessionAttribute(SessionConst.LOGIN_PARTNER) Long partnerId) {
+        if (bindingResult.hasErrors()) {
+            return Validation.getErrorResponse(bindingResult);
+        }
+
+        if (partnerId == null) {
+            throw new CustomException(ErrorCode.PARTNER_ACCESS_ONLY);
+        }
+
+        return ResponseEntity.ok(storeService.updateStore(storeId, form, partnerId));
+    }
+
+    @DeleteMapping("delete/{storeId}")
+    public ResponseEntity<?> deleteStore(@PathVariable(name = "storeId") Long storeId,
+                                         @SessionAttribute(SessionConst.LOGIN_PARTNER) Long partnerId) {
+        if (partnerId == null) {
+            throw new CustomException(ErrorCode.PARTNER_ACCESS_ONLY);
+        }
+        storeService.deleteStore(storeId, partnerId);
+        return ResponseEntity.ok("DELETE");
+    }
+
     /**
      * 매장을 이름이나 키워드로 검색하는 메서드입니다.
      *

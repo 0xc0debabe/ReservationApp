@@ -16,6 +16,7 @@ import reservation.hmw.model.entity.dto.StoreRegisterForm;
 import reservation.hmw.repository.PartnerRepository;
 import reservation.hmw.repository.StoreRepository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class StoreServiceTest {
@@ -48,6 +51,7 @@ class StoreServiceTest {
                 .email("asdf@naver.com")
                 .name("홍길동")
                 .password("1234")
+                .storeList(new ArrayList<>())
                 .build();
 
         // given
@@ -128,7 +132,7 @@ class StoreServiceTest {
                   () -> storeService.searchStoreByKeyword("test"));
 
           //then
-          Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_PASSWORD);
+          Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_STORE);
        }
 
        @Test
@@ -186,7 +190,142 @@ class StoreServiceTest {
 
              //then
              Assertions.assertThat(exception.getErrorCode())
-                     .isEqualTo(ErrorCode.INVALID_PASSWORD);
+                     .isEqualTo(ErrorCode.NOT_FOUND_STORE);
           }
 
+    @Test
+    void updateStore_success() {
+        // given
+        Partner mockPartner = Partner.builder()
+                .id(1L)
+                .email("asdf@naver.com")
+                .name("홍길동")
+                .password("1234")
+                .storeList(new ArrayList<>())
+                .build();
+
+        Store existingStore = Store.builder()
+                .id(1L)
+                .storeName("name")
+                .location("seoul")
+                .storeDescription("good")
+                .keyword("keyword")
+                .partner(mockPartner)
+                .build();
+
+        StoreRegisterForm updateForm = new StoreRegisterForm();
+        updateForm.setStoreName("Updated Store Name");
+        updateForm.setStoreDescription("Updated Description");
+        updateForm.setLocation("Updated Location");
+        updateForm.setKeyword("Updated Keyword");
+
+        given(storeRepository.findById(1L)).willReturn(Optional.of(existingStore));
+        given(storeRepository.save(any(Store.class))).willReturn(existingStore);
+
+        // when
+        Store updatedStore = storeService.updateStore(1L, updateForm, 1L);
+
+        // then
+        Assertions.assertThat(updatedStore.getStoreName()).isEqualTo("Updated Store Name");
+        Assertions.assertThat(updatedStore.getStoreDescription()).isEqualTo("Updated Description");
+        Assertions.assertThat(updatedStore.getLocation()).isEqualTo("Updated Location");
+        Assertions.assertThat(updatedStore.getKeyword()).isEqualTo("Updated Keyword");
+
+        verify(storeRepository, times(1)).findById(1L);
+        verify(storeRepository, times(1)).save(any(Store.class));
+    }
+
+
+    @Test
+    void updateStore_unauthorized() {
+        // given
+        Partner mockPartner = Partner.builder()
+                .email("asdf@naver.com")
+                .name("홍길동")
+                .password("1234")
+                .storeList(new ArrayList<>())
+                .build();
+
+        Store existingStore = Store.builder()
+                .id(1L)
+                .storeName("name")
+                .location("seoul")
+                .storeDescription("good")
+                .keyword("keyword")
+                .partner(mockPartner)
+                .build();
+
+        StoreRegisterForm updateForm = new StoreRegisterForm();
+
+        given(storeRepository.findById(1L)).willReturn(Optional.of(existingStore));
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () ->
+                storeService.updateStore(1L, updateForm, 1L)); // 다른 파트너 ID로 업데이트 시도
+
+        // then
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.UNAUTHORIZED_ACTION);
+        verify(storeRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void deleteStore_success() {
+        // given
+        Partner mockPartner = Partner.builder()
+                .id(1L)
+                .email("asdf@naver.com")
+                .name("홍길동")
+                .password("1234")
+                .storeList(new ArrayList<>())
+                .build();
+
+        Store existingStore = Store.builder()
+                .id(1L)
+                .storeName("name")
+                .location("seoul")
+                .storeDescription("good")
+                .keyword("keyword")
+                .partner(mockPartner)
+                .build();
+
+        given(storeRepository.findById(1L)).willReturn(Optional.of(existingStore));
+
+        // when
+        storeService.deleteStore(1L, 1L); // 올바른 파트너 ID로 삭제 호출
+
+        // then
+        verify(storeRepository, times(1)).findById(1L);
+        verify(storeRepository, times(1)).delete(existingStore);
+    }
+
+
+    @Test
+    void deleteStore_unauthorized() {
+        // given
+        Partner mockPartner = Partner.builder()
+                .email("asdf@naver.com")
+                .name("홍길동")
+                .password("1234")
+                .storeList(new ArrayList<>())
+                .build();
+
+        Store existingStore = Store.builder()
+                .id(1L)
+                .storeName("name")
+                .location("seoul")
+                .storeDescription("good")
+                .keyword("keyword")
+                .partner(mockPartner) // 다른 파트너 ID
+                .build();
+
+        given(storeRepository.findById(1L)).willReturn(Optional.of(existingStore));
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () ->
+                storeService.deleteStore(1L, 1L)); // 다른 파트너 ID로 삭제 시도
+
+        // then
+        Assertions.assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.UNAUTHORIZED_ACTION);
+        verify(storeRepository, times(1)).findById(1L);
+    }
 }

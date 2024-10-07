@@ -1,15 +1,13 @@
 package reservation.hmw.model.entity.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import reservation.hmw.model.entity.Store;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 @Getter
 public class StoreRegisterForm {
 

@@ -26,10 +26,10 @@ public class User {
     private String password;
     private String phone;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> reviewList;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Reservation> reservationList;
 
     @CreatedDate

@@ -39,7 +39,7 @@ public class ReservationService {
     @Transactional
     public ReservationDto.Response createReservation(ReservationDto.Request dtoRequest) {
         Store findStore = storeRepository.findById(dtoRequest.getStoreId())
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PASSWORD));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STORE));
 
         User findUser = userRepository.findById(dtoRequest.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -50,6 +50,8 @@ public class ReservationService {
                 .reservationTime(dtoRequest.getReservationTime())
                 .reservationStatus(ReservationStatus.PENDING)
                 .build());
+
+        findStore.getReservationList().add(reservation);
 
         return ReservationDto.Response.builder()
                 .storeName(findStore.getStoreName())
@@ -77,6 +79,24 @@ public class ReservationService {
                 .storeName(findStore.getStoreName())
                 .reservationTime(findReservation.getReservationTime())
                 .build();
+    }
+
+    @Transactional
+    public void approveReservation(Long reservationId) {
+        Reservation findReservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        findReservation.setReservationStatus(ReservationStatus.APPROVED);
+        reservationRepository.save(findReservation);
+    }
+
+    @Transactional
+    public void rejectReservation(Long reservationId) {
+        Reservation findReservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        findReservation.setReservationStatus(ReservationStatus.REJECT);
+        reservationRepository.save(findReservation);
     }
 
 }
