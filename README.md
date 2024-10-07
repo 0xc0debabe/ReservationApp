@@ -2,6 +2,9 @@
 
 + 매장을 방문할때 미리 방문 예약을 진행하는 기능입니다.
 
+# 📆 프로젝트 기간
++ 24.09.16 ~ 24.10.07
+
 # 🛠️ 기술 스택
 
 + **Language** : JAVA
@@ -24,6 +27,43 @@
 + 리뷰 작성 기능: 이용자는 예약 및 매장 이용 후 리뷰를 작성할 수 있습니다. 리뷰 수정은 작성자만 가능하며, 삭제는 작성자와 매장의 관리자(점장 등)만 할 수 있습니다.
 
 # 🧾 ERD
-+ ![image](https://github.com/user-attachments/assets/922acdaa-36d9-4a97-a6dc-df5e9c79431f)
+![image](https://github.com/user-attachments/assets/922acdaa-36d9-4a97-a6dc-df5e9c79431f)
+
+# 💻 최종 구현 API
+
+## 파트너
+
+ + ✅ POST - /partner/register (회원 가입)
+ + ✅ POST - /partner/login (로그인)
+ + ✅ POST - /partner/logout (로그아웃)
+
+## 유저
+
+ + ✅ POST - /user/register (회원 가입)
+ + ✅ POST - /user/login (로그인)
+ + ✅ POST - /user/logout (로그아웃)
+
+## 매장
+
+ + ✅ POST - /store/register (상점 등록)
+ + ✅ PUT - /store/update/{storeId} (상점 수정)
+ + ✅ DELETE - /store/delete/{storeId} (상점 삭제)
+ + ✅ GET - /store/search (상점 검색)
+ + ✅ GET - /store/detail/{storeId} (상점 상세 정보)
+
+## 예약
+
+ + ✅ POST - /reservation (예약 등록)
+ + ✅ POST - /reservation/confirm (예약 확인)
+ + ✅ PUT- /reservation/approve/{reservationId} (예약 승인)
+ + ✅ PUT - /reservation/reject/{reservationId} (예약 거절)
+
+## 리뷰
+
+ + ✅ POST - /review (리뷰 작성)
+ + ✅ GET - /review (리뷰 15개씩 확인)
+ + ✅ GET - /review/{reviewId} (상세 리뷰)
+ + ✅ PUT - /review/{reviewId} (리뷰 수정)
+ + ✅ DELETE - /review/{reviewId} (리뷰 삭제)
 
 
